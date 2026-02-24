@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سندويجي </title>
+
+<style>
+body{font-family:Tahoma;background:#111;color:#ffd54f;text-align:center;margin:0}
+header{height:320px;background:#111;display:flex;align-items:center;justify-content:center;}
+header img{height:350px;}
+nav{margin:15px;display:flex;justify-content:center;gap:10px}
+nav button{padding:10px 20px;margin:5px;border:none;border-radius:20px;background:#ff9800;font-weight:bold;cursor:pointer}
+#welcome{padding:20px;}
+#welcome img{width:80%;max-width:400px;border-radius:15px;margin-bottom:10px;}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;padding:20px}
+.item{background:#222;padding:10px;border-radius:12px}
+.item img{width:100%;height:140px;object-fit:cover;border-radius:10px}
+button{cursor:pointer}
+.hidden{display:none}
+#cart{background:#1a1a1a;padding:15px;margin-top:15px}
+.qty button{padding:3px 8px;margin:0 3px}
+.admin-btn{position:fixed;bottom:5px;right:5px;font-size:10px;opacity:0.3;background:none;border:none;color:#fff}
+.admin-panel{background:#222;padding:15px;margin-top:15px}
+input{padding:6px;margin:5px;border-radius:6px;border:none}
+</style>
+</head>
+<body>
+
+<header>
+<img src="WhatsApp Image 2026-02-21 at 5.39.11 PM.jpeg" alt="شعار المطعم">
+</header>
+
+<!-- المجموعات مباشرة تحت الهيدر -->
+<nav>
+<button onclick="showCategory('sandwich')">سندويش</button>
+<button onclick="showCategory('burger')">برغر</button>
+</nav>
+
+<!-- الترحيب تحت المجموعات -->
+<section id="welcome">
+<img src="WhatsApp Image 2026-02-21 at 5.43.39 PM.jpeg" alt="ترحيب">
+<p>نتميز بلقمتنا وطعمتنا بتحكي عنا</p>
+</section>
+
+<!-- عرض المنتجات -->
+<div id="menu" class="menu"></div>
+
+<!-- السلة -->
+<div id="cart">
+<h3>السلة</h3>
+<ul id="cartList"></ul>
+<p>المجموع: <span id="total">0</span> ل.ل</p>
+<button onclick="sendWhatsApp()">إرسال الطلب عبر واتساب</button>
+</div>
+
+<!-- زر أدمن مخفي -->
+<button class="admin-btn" onclick="showLogin()">⚙</button>
+
+<!-- تسجيل دخول -->
+<div id="loginBox" class="hidden">
+<h3>دخول الأدمن</h3>
+<input type="password" id="pass" placeholder="كلمة السر">
+<button onclick="login()">دخول</button>
+</div>
+
+<!-- لوحة الأدمن -->
+<div id="adminPanel" class="admin-panel hidden">
+<h3>لوحة التحكم</h3>
+
+<h4>إضافة منتج</h4>
+<input type="text" id="newName" placeholder="اسم المنتج">
+<input type="number" id="newPrice" placeholder="السعر">
+<input type="file" id="newImage" accept="image/*">
+<select id="newCat">
+<option value="sandwich">سندويش</option>
+<option value="burger">برغر</option>
+</select>
+<button onclick="addProduct()">إضافة منتج</button>
+
+<h4>المنتجات الحالية</h4>
+<div id="adminProducts"></div>
+
+<button onclick="logout()">خروج</button>
+</div>
+
+<script>
+var phoneNumber = "96170529239";
+
+var products = JSON.parse(localStorage.getItem("products")) || [
+{name:"مقانق",price:270000,cat:"sandwich",img:"https://via.placeholder.com/300"},
+{name:"سجق",price:270000,cat:"sandwich",img:"https://via.placeholder.com/300"},
+{name:"تشيز برغر",price:360000,cat:"burger",img:"https://via.placeholder.com/300"}
+];
+
+var cart=[];
+
+function showCategory(cat){
+document.getElementById("welcome").classList.add("hidden"); // إخفاء الترحيب عند اختيار مجموعة
+var menu=document.getElementById("menu");
+menu.innerHTML="";
+for(var i=0;i<products.length;i++){
+if(products[i].cat===cat){
+menu.innerHTML+="<div class='item'>"+
+"<img src='"+products[i].img+"'>"+
+"<p>"+products[i].name+"</p>"+
+"<p>"+products[i].price+" ل.ل</p>"+
+"<button onclick='addToCart("+i+")'>أضف</button>"+
+"</div>";
+}
+}
+}
+
+function addToCart(i){
+var found=false;
+for(var j=0;j<cart.length;j++){
+if(cart[j].name===products[i].name){cart[j].qty++;found=true;}
+}
+if(!found){cart.push({name:products[i].name,price:products[i].price,qty:1});}
+renderCart();
+}
+
+function renderCart(){
+var list=document.getElementById("cartList");
+list.innerHTML="";
+var total=0;
+for(var i=0;i<cart.length;i++){
+list.innerHTML+="<li>"+cart[i].name+" - "+cart[i].price+
+"<div class='qty'>"+
+"<button onclick='changeQty("+i+",-1)'>-</button>"+
+cart[i].qty+
+"<button onclick='changeQty("+i+",1)'>+</button>"+
+"<button onclick='removeItem("+i+")'>حذف</button>"+
+"</div></li>";
+total+=cart[i].price*cart[i].qty;
+}
+document.getElementById("total").innerHTML=total;
+}
+
+function changeQty(i,change){
+cart[i].qty+=change;
+if(cart[i].qty<=0) cart.splice(i,1);
+renderCart();
+}
+
+function removeItem(i){cart.splice(i,1);renderCart();}
+
+function sendWhatsApp(){
+if(cart.length==0){alert("السلة فارغة");return;}
+var msg="مرحبا، أود طلب:\n";
+for(var i=0;i<cart.length;i++){
+msg+=cart[i].name+" × "+cart[i].qty+"\n";
+}
+msg+="المجموع: "+document.getElementById("total").innerHTML+" ل.ل";
+var url="https://wa.me/"+phoneNumber+"?text="+encodeURIComponent(msg);
+window.open(url,"_blank");
+}
+
+/* الأدمن */
+function showLogin(){document.getElementById("loginBox").classList.remove("hidden");}
+function login(){
+if(document.getElementById("pass").value==="1234"){
+document.getElementById("adminPanel").classList.remove("hidden");
+renderAdmin();
+}else{alert("كلمة سر خاطئة");}
+}
+function logout(){document.getElementById("adminPanel").classList.add("hidden");}
+
+function addProduct(){
+var name=document.getElementById("newName").value;
+var price=parseInt(document.getElementById("newPrice").value);
+var cat=document.getElementById("newCat").value;
+var file=document.getElementById("newImage").files[0];
+if(!name || !price || !file){alert("يرجى تعبئة كل الحقول");return;}
+var reader=new FileReader();
+reader.onload=function(e){
+var img=e.target.result;
+products.push({name:name,price:price,cat:cat,img:img});
+localStorage.setItem("products",JSON.stringify(products));
+renderAdmin();
+showCategory(cat);
+};
+reader.readAsDataURL(file);
+}
+
+function renderAdmin(){
+var div=document.getElementById("adminProducts");
+div.innerHTML="";
+for(var i=0;i<products.length;i++){
+div.innerHTML+="<p>"+products[i].name+" - "+
+"<input type='number' value='"+products[i].price+"' onchange='editPrice("+i+",this.value)'>"+
+" <button onclick='deleteProduct("+i+")'>حذف</button></p>";
+}
+}
+
+function editPrice(i,newPrice){
+products[i].price=parseInt(newPrice);
+localStorage.setItem("products",JSON.stringify(products));
+showCategory(products[i].cat);
+}
+
+function deleteProduct(i){
+products.splice(i,1);
+localStorage.setItem("products",JSON.stringify(products));
+renderAdmin();
+document.getElementById("menu").innerHTML="";
+}
+
+</script>
+</body>
+</html>
