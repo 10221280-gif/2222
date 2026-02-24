@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سندويجي </title>
-
+<title>ساندويش الإبراهيم</title>
 <style>
 body{font-family:Tahoma;background:#111;color:#ffd54f;text-align:center;margin:0}
-header{height:320px;background:#111;display:flex;align-items:center;justify-content:center;}
-header img{height:350px;}
+header{height:180px;background:#111;display:flex;align-items:center;justify-content:center;}
+header img{height:100px;}
 nav{margin:15px;display:flex;justify-content:center;gap:10px}
 nav button{padding:10px 20px;margin:5px;border:none;border-radius:20px;background:#ff9800;font-weight:bold;cursor:pointer}
 #welcome{padding:20px;}
@@ -28,25 +27,21 @@ input{padding:6px;margin:5px;border-radius:6px;border:none}
 <body>
 
 <header>
-<img src="WhatsApp Image 2026-02-21 at 5.39.11 PM.jpeg" alt="شعار المطعم">
+<img src="logo.jpeg" alt="شعار المطعم">
 </header>
 
-<!-- المجموعات مباشرة تحت الهيدر -->
 <nav>
 <button onclick="showCategory('sandwich')">سندويش</button>
 <button onclick="showCategory('burger')">برغر</button>
 </nav>
 
-<!-- الترحيب تحت المجموعات -->
 <section id="welcome">
-<img src="WhatsApp Image 2026-02-21 at 5.43.39 PM.jpeg" alt="ترحيب">
+<img src="welcome.jpg" alt="ترحيب">
 <p>نتميز بلقمتنا وطعمتنا بتحكي عنا</p>
 </section>
 
-<!-- عرض المنتجات -->
 <div id="menu" class="menu"></div>
 
-<!-- السلة -->
 <div id="cart">
 <h3>السلة</h3>
 <ul id="cartList"></ul>
@@ -54,17 +49,14 @@ input{padding:6px;margin:5px;border-radius:6px;border:none}
 <button onclick="sendWhatsApp()">إرسال الطلب عبر واتساب</button>
 </div>
 
-<!-- زر أدمن مخفي -->
 <button class="admin-btn" onclick="showLogin()">⚙</button>
 
-<!-- تسجيل دخول -->
 <div id="loginBox" class="hidden">
 <h3>دخول الأدمن</h3>
 <input type="password" id="pass" placeholder="كلمة السر">
 <button onclick="login()">دخول</button>
 </div>
 
-<!-- لوحة الأدمن -->
 <div id="adminPanel" class="admin-panel hidden">
 <h3>لوحة التحكم</h3>
 
@@ -87,16 +79,20 @@ input{padding:6px;margin:5px;border-radius:6px;border:none}
 <script>
 var phoneNumber = "96170529239";
 
+// تحميل المنتجات من LocalStorage أو القيمة الافتراضية
 var products = JSON.parse(localStorage.getItem("products")) || [
 {name:"مقانق",price:270000,cat:"sandwich",img:"https://via.placeholder.com/300"},
 {name:"سجق",price:270000,cat:"sandwich",img:"https://via.placeholder.com/300"},
 {name:"تشيز برغر",price:360000,cat:"burger",img:"https://via.placeholder.com/300"}
 ];
 
+// تحديث LocalStorage
+function saveProducts(){ localStorage.setItem("products", JSON.stringify(products)); }
+
 var cart=[];
 
 function showCategory(cat){
-document.getElementById("welcome").classList.add("hidden"); // إخفاء الترحيب عند اختيار مجموعة
+document.getElementById("welcome").classList.add("hidden");
 var menu=document.getElementById("menu");
 menu.innerHTML="";
 for(var i=0;i<products.length;i++){
@@ -156,7 +152,7 @@ var url="https://wa.me/"+phoneNumber+"?text="+encodeURIComponent(msg);
 window.open(url,"_blank");
 }
 
-/* الأدمن */
+// الأدمن
 function showLogin(){document.getElementById("loginBox").classList.remove("hidden");}
 function login(){
 if(document.getElementById("pass").value==="1234"){
@@ -166,6 +162,7 @@ renderAdmin();
 }
 function logout(){document.getElementById("adminPanel").classList.add("hidden");}
 
+// إضافة منتج
 function addProduct(){
 var name=document.getElementById("newName").value;
 var price=parseInt(document.getElementById("newPrice").value);
@@ -176,13 +173,14 @@ var reader=new FileReader();
 reader.onload=function(e){
 var img=e.target.result;
 products.push({name:name,price:price,cat:cat,img:img});
-localStorage.setItem("products",JSON.stringify(products));
+saveProducts();
 renderAdmin();
 showCategory(cat);
 };
 reader.readAsDataURL(file);
 }
 
+// عرض المنتجات في لوحة الأدمن
 function renderAdmin(){
 var div=document.getElementById("adminProducts");
 div.innerHTML="";
@@ -193,19 +191,25 @@ div.innerHTML+="<p>"+products[i].name+" - "+
 }
 }
 
+// تعديل سعر
 function editPrice(i,newPrice){
 products[i].price=parseInt(newPrice);
-localStorage.setItem("products",JSON.stringify(products));
+saveProducts();
 showCategory(products[i].cat);
 }
 
+// حذف صنف
 function deleteProduct(i){
 products.splice(i,1);
-localStorage.setItem("products",JSON.stringify(products));
+saveProducts();
 renderAdmin();
 document.getElementById("menu").innerHTML="";
 }
 
+// عرض المنتجات عند تحميل الصفحة
+window.onload=function(){
+saveProducts(); // حفظ النسخة الحالية إذا LocalStorage فارغ
+};
 </script>
 </body>
 </html>
